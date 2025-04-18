@@ -1,6 +1,6 @@
 # Receipt Analyzer
 
-An intelligent receipt analysis system that uses OCR and LLMs to extract, categorize, and validate receipt information.
+An intelligent receipt analysis system that extracts, categorizes, and validates receipt information using OCR and LLM technologies.
 
 ## Features
 
@@ -8,7 +8,7 @@ An intelligent receipt analysis system that uses OCR and LLMs to extract, catego
 - Extract vendor information, date, items, and totals
 - Categorize expenses automatically
 - Validate calculations with self-correction
-- Interactive UI for reviewing and editing results
+- Store and retrieve similar receipts
 
 ## Technology Stack
 
@@ -16,6 +16,7 @@ An intelligent receipt analysis system that uses OCR and LLMs to extract, catego
 - Mistral OCR API for image processing
 - Mistral LLM for intelligent analysis
 - LlamaIndex for agentic framework
+- Pinecone for vector storage
 - Streamlit for user interface
 
 ## Setup

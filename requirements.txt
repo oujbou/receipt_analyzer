@@ -6,6 +6,11 @@ pydantic>=2.4.0
 llama-index>=0.9.11
 llama-index-llms-mistralai>=0.1.2
 
+# Vector Database
+pinecone-client>=2.2.1
+llama-index-vector-stores-pinecone>=0.1.2
+sentence-transformers>=2.2.2
+
 # OCR and API
 mistralai>=0.0.7
 requests>=2.31.0

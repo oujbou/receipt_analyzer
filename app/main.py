@@ -1,18 +1,18 @@
 """Main application entry point."""
 import logging
-from app.config import get_settings
+from app.config import get_config
 
 logger = logging.getLogger(__name__)
 
 def initialize_application():
     """Initialize the app components."""
-    config = get_settings()
-    logger.info(f"Application initialized with log level: {config.log_level}")
+    config = get_config()
+    logger.info("Application initialized successfully!")
     return config
 
 def main():
     try:
-        config = initialize_application()
+        initialize_application()
         logger.info("Receipt Analyzer application started")
     except Exception as e:
         logger.exception(f"Failed to start application: {e}")
