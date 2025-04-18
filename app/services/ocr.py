@@ -57,7 +57,7 @@ class OCRService:
             base64_image = self._encode_image(image_path)
 
 
-            # Prepare the request playload
+            # Prepare the request payload
             payload = {
                 "image": base64_image,
                 "options": {
