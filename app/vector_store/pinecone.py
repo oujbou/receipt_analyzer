@@ -32,7 +32,7 @@ class ReceiptVectorStore:
         # Initialize Pinecone
         pinecone.init(api_key=self.api_key, environment=self.environment)
 
-        # Get the Pinecone index (assuming it already exists)
+        # Get the Pinecone index
         self.index = pinecone.Index(self.index_name)
 
         # Initialize the embedding model
@@ -47,7 +47,7 @@ class ReceiptVectorStore:
         storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
         self.llama_index = VectorStoreIndex([], storage_context=storage_context)
 
-        logger.info(f"Pinecone vector store initialized with existing index: {index_name}")
+        logger.info(f"Pinecone vector store initialized: {index_name}")
 
     def _receipt_to_text(self, receipt: Receipt) -> str:
         # Create a searchable text representation of the receipt
@@ -77,5 +77,77 @@ class ReceiptVectorStore:
             lines.append(receipt.ocr_text)
 
         return "\n".join(lines)
+
+    def add_receipt(self, receipt: Receipt) -> str:
+        """Add a receipt to the vector store"""
+        try:
+            # Generate a unique ID for the receipt
+            receipt_id = str(uuid.uuid4())
+
+            # Convert receipt to text for embedding
+            receipt_text = self._receipt_to_text(receipt)
+
+            # Create a document with metadata
+            metadata = {
+                "receipt_id": receipt_id,
+                "vendor": receipt.vendor,
+                "date": str(receipt.date),
+                "total": receipt.total,
+                "currency": receipt.currency,
+                "items_count": len(receipt.items),
+                "receipt_json": json.dumps(receipt.model_dump(), default=str)
+            }
+
+            document = Document(
+                text=receipt_text,
+                metadata=metadata
+            )
+
+            # Add to the index
+            self.llama_index.insert(document)
+
+            logger.info(f"Added receipt to vector store with ID: {receipt_id}")
+            return receipt_id
+
+        except Exception as e:
+            logger.error(f"Error adding receipt to vector store: {e}")
+            raise
+
+    def search_similar_receipts(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """Search for similar receipts based on a query"""
+        try:
+            # Create a query engine
+            query_engine = self.llama_index.as_query_engine(similarity_top_k=limit)
+
+            # Execute the query
+            response = query_engine.query(query)
+
+            results = []
+            if hasattr(response, 'source_nodes'):
+                for node in response.source_nodes:
+                    try:
+                        # Extract the receipt JSON from metadata
+                        receipt_json = node.metadata.get("receipt_json", "{}")
+                        receipt_data = json.loads(receipt_json)
+
+                        # Add similarity score and node text to the result
+                        result = {
+                            "receipt_id": node.metadata.get("receipt_id"),
+                            "vendor": node.metadata.get("vendor"),
+                            "date": node.metadata.get("date"),
+                            "total": node.metadata.get("total"),
+                            "receipt_data": receipt_data,
+                            "score": node.score if hasattr(node, 'score') else None,
+                        }
+                        results.append(result)
+                    except json.JSONDecodeError:
+                        logger.warning(f"Error decoding receipt JSON from metadata")
+
+            logger.info(f"Found {len(results)} similar receipts for query: {query}")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error searching similar receipts: {e}")
+            return []
 
 
