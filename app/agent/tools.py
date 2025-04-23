@@ -2,7 +2,6 @@
 
 import logging
 from typing import Dict, List, Any, Optional
-from datetime import datetime
 
 from llama_index.core.tools import BaseTool, FunctionTool
 

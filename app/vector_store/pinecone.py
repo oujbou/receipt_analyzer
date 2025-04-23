@@ -150,4 +150,34 @@ class ReceiptVectorStore:
             logger.error(f"Error searching similar receipts: {e}")
             return []
 
+    def search_by_vendor(self, vendor_name: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Search for receipts from a specific vendor"""
+        return self.search_similar_receipts(f"Vendor: {vendor_name}", limit)
+
+    def get_receipt_by_id(self, receipt_id: str) -> Optional[Dict[str, Any]]:
+        """Get a receipt by its ID"""
+        try:
+            # Create a query engine
+            query_engine = self.llama_index.as_query_engine(similarity_top_k=10)
+
+            # Execute a query that targets the specific receipt ID
+            response = query_engine.query(f"receipt_id:{receipt_id}")
+
+            if hasattr(response, 'source_nodes'):
+                for node in response.source_nodes:
+                    if node.metadata.get("receipt_id") == receipt_id:
+                        receipt_json = node.metadata.get("receipt_json", "{}")
+                        receipt_data = json.loads(receipt_json)
+                        return {
+                            "receipt_id": receipt_id,
+                            "receipt_data": receipt_data,
+                        }
+
+            logger.warning(f"Receipt not found with ID: {receipt_id}")
+            return None
+
+        except Exception as e:
+            logger.error(f"Error getting receipt by ID: {e}")
+            return None
+
 
